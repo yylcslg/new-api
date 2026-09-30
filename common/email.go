@@ -8,6 +8,8 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"github.com/resend/resend-go/v3"
 )
 
 func generateMessageID() (string, error) {
@@ -75,7 +77,7 @@ func newSMTPClient(addr string) (*smtp.Client, error) {
 	return client, nil
 }
 
-func SendEmail(subject string, receiver string, content string) error {
+func SendEmail_destroy(subject string, receiver string, content string) error {
 	if SMTPFrom == "" { // for compatibility
 		SMTPFrom = SMTPAccount
 	}
@@ -133,4 +135,22 @@ func SendEmail(subject string, receiver string, content string) error {
 		SysError(fmt.Sprintf("failed to send email to %s: %v", receiver, err))
 	}
 	return err
+}
+
+func SendEmail(subject string, receiver string, content string) error {
+	ResendEmail := SMTPAccount
+	ResendApiKey := SMTPToken
+	client := resend.NewClient(ResendApiKey)
+
+	params := &resend.SendEmailRequest{
+		From:    ResendEmail,
+		To:      []string{receiver},
+		Subject: subject,
+		Html:    content,
+	}
+
+	_, err := client.Emails.Send(params)
+
+	return err
+
 }
